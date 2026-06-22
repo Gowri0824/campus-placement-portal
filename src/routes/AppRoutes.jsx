@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
+import Profile from "../pages/student/Profile";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import { supabase } from "../services/supabaseClient";
 
@@ -63,6 +64,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 
 function StudentDashboard() {
@@ -59,9 +59,19 @@ function StudentDashboard() {
 
         {error && <div style={styles.error}>{error}</div>}
 
-        <button type="button" onClick={handleLogout} style={styles.button}>
-          Logout
-        </button>
+        <div style={styles.actions}>
+          <Link to="/student/profile" style={styles.profileCard}>
+            <span style={styles.cardTitle}>Profile</span>
+            <span style={styles.cardText}>
+              View and update your academic details, skills, and resume
+              information.
+            </span>
+          </Link>
+
+          <button type="button" onClick={handleLogout} style={styles.button}>
+            Logout
+          </button>
+        </div>
       </section>
     </main>
   );
@@ -99,6 +109,29 @@ const styles = {
     color: "#4b5563",
     fontSize: "16px",
   },
+  actions: {
+    display: "grid",
+    gap: "16px",
+  },
+  profileCard: {
+    display: "grid",
+    gap: "8px",
+    maxWidth: "420px",
+    border: "1px solid #bfdbfe",
+    borderRadius: "8px",
+    padding: "18px",
+    background: "#eff6ff",
+    color: "#1e3a8a",
+    textDecoration: "none",
+  },
+  cardTitle: {
+    fontSize: "18px",
+    fontWeight: 700,
+  },
+  cardText: {
+    color: "#475569",
+    lineHeight: 1.5,
+  },
   button: {
     border: "0",
     borderRadius: "6px",
@@ -108,6 +141,7 @@ const styles = {
     fontSize: "15px",
     fontWeight: 700,
     cursor: "pointer",
+    justifySelf: "start",
   },
   error: {
     marginBottom: "16px",
