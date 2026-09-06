@@ -8,6 +8,16 @@ const STUDENT_COLUMNS =
   "id, profile_id, roll_number, branch, cgpa, graduation_year, skills, resume_url, created_at";
 const PROFILE_COLUMNS = "id, full_name, email, role, created_at";
 
+export async function fetchStudentForProfile(profileId) {
+  const { data, error } = await supabase
+    .from("students")
+    .select("id, branch, cgpa")
+    .eq("profile_id", profileId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 async function fetchAllStudents() {
   const students = [];
   let pageStart = 0;

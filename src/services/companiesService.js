@@ -1,4 +1,13 @@
 import { supabase } from "./supabaseClient";
+import { fetchRowsByIds } from "./supabaseReads";
+
+export async function fetchCompanyNamesByIds(ids) {
+  const { data, error } = await fetchRowsByIds(
+    "companies", "id, company_name", [...new Set(ids.filter(Boolean))]
+  );
+  if (error) throw error;
+  return data;
+}
 
 const COMPANY_COLUMNS =
   "id, company_name, website, description, location, created_at";

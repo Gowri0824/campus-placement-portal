@@ -86,6 +86,7 @@ function StudentsTable({
                         target="_blank"
                         rel="noreferrer"
                         style={styles.link}
+                        onClick={(event) => onOpenResume(student, event)}
                       >
                         View Resume
                       </a>

@@ -124,3 +124,66 @@ function safeDecodeURIComponent(value) {
     return value;
   }
 }
+
+export function uploadResumeWithProgress({ file, filePath, accessToken, onProgress }) {
+  return new Promise((resolve, reject) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      reject(new Error("Supabase environment variables are missing."));
+      return;
+    }
+
+    const encodedFilePath = filePath.split("/").map(encodeURIComponent).join("/");
+    const uploadUrl = `${supabaseUrl.replace(
+      /\/$/,
+      ""
+    )}/storage/v1/object/${RESUME_BUCKET}/${encodedFilePath}`;
+    const request = new XMLHttpRequest();
+
+    request.open("POST", uploadUrl);
+    request.setRequestHeader("apikey", supabaseAnonKey);
+    request.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+    request.setRequestHeader("Content-Type", "application/pdf");
+    request.setRequestHeader("x-upsert", "false");
+    request.timeout = 120000;
+    request.ontimeout = () => reject(new Error("Resume upload timed out. Please try again."));
+    request.onabort = () => reject(new Error("Resume upload was cancelled."));
+
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const progress = Math.round((event.loaded / event.total) * 85);
+        onProgress(Math.max(progress, 5));
+      }
+    };
+
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(getStorageErrorMessage(request)));
+    };
+
+    request.onerror = () => {
+      reject(new Error("Network error while uploading the resume."));
+    };
+
+    request.send(file);
+  });
+}
+
+function getStorageErrorMessage(request) {
+  try {
+    const response = JSON.parse(request.responseText);
+    return (
+      response.message ||
+      response.error ||
+      `Resume upload failed with status ${request.status}.`
+    );
+  } catch {
+    return `Resume upload failed with status ${request.status}.`;
+  }
+}

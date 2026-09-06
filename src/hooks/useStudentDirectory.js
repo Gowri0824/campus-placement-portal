@@ -1,13 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  createStudentResumeAccessUrl,
-  fetchStudentDirectory,
-} from "../services/studentsService";
+import { useEffect, useMemo, useState } from "react";
+import { useStudentResumeAccess } from "./useStudentResumeAccess";
+import { fetchStudentDirectory } from "../services/studentsService";
 import {
   filterStudents,
   getBranchOptions,
   getGraduationYearOptions,
-  getSafeHttpUrl,
   getStudentProfileIssueCounts,
   parseMinimumCgpaFilter,
 } from "../utils/studentDirectory";
@@ -23,23 +20,22 @@ export function useStudentDirectory() {
   const [graduationYearFilter, setGraduationYearFilter] = useState("");
   const [minimumCgpaFilter, setMinimumCgpaFilter] = useState("");
   const [expandedStudentId, setExpandedStudentId] = useState(null);
-  const [resumeAccessUrls, setResumeAccessUrls] = useState({});
-  const [openingResumeStudentId, setOpeningResumeStudentId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const isMounted = useRef(false);
+  const { resumeAccessUrls, openingResumeStudentId, openStudentResume } =
+    useStudentResumeAccess(setError);
 
   useEffect(() => {
-    isMounted.current = true;
+    let active = true;
 
     fetchStudentDirectory()
       .then((records) => {
-        if (isMounted.current) {
+        if (active) {
           setStudents(records);
         }
       })
       .catch((requestError) => {
-        if (isMounted.current) {
+        if (active) {
           setError(
             getErrorMessage(requestError, "Unable to load student records."),
           );
@@ -47,13 +43,13 @@ export function useStudentDirectory() {
         }
       })
       .finally(() => {
-        if (isMounted.current) {
+        if (active) {
           setIsLoading(false);
         }
       });
 
     return () => {
-      isMounted.current = false;
+      active = false;
     };
   }, []);
 
@@ -99,56 +95,6 @@ export function useStudentDirectory() {
     setExpandedStudentId((currentStudentId) =>
       currentStudentId === studentId ? null : studentId,
     );
-  }
-
-  async function openStudentResume(student) {
-    setError("");
-    setOpeningResumeStudentId(student.id);
-
-    const resumeWindow = window.open("about:blank", "_blank");
-
-    if (resumeWindow) {
-      resumeWindow.opener = null;
-    }
-
-    try {
-      const signedUrl = await createStudentResumeAccessUrl(student.resume_path);
-      const safeSignedUrl = getSafeHttpUrl(signedUrl);
-
-      if (!safeSignedUrl) {
-        throw new Error("The secure resume link is invalid.");
-      }
-
-      if (!isMounted.current) {
-        resumeWindow?.close();
-        return;
-      }
-
-      setResumeAccessUrls((currentUrls) => ({
-        ...currentUrls,
-        [student.id]: safeSignedUrl,
-      }));
-
-      if (resumeWindow) {
-        resumeWindow.location.replace(safeSignedUrl);
-      } else {
-        setError(
-          "The secure resume link is ready. Select View Resume again to open it.",
-        );
-      }
-    } catch (resumeError) {
-      resumeWindow?.close();
-
-      if (isMounted.current) {
-        setError(
-          getErrorMessage(resumeError, "Unable to open the student resume."),
-        );
-      }
-    } finally {
-      if (isMounted.current) {
-        setOpeningResumeStudentId(null);
-      }
-    }
   }
 
   return {
