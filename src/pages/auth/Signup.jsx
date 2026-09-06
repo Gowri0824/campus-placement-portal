@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ROLES } from "../../constants/roles";
+import { ROUTES } from "../../constants/routes";
 import { supabase } from "../../services/supabaseClient";
 
 const initialForm = {
@@ -93,7 +95,7 @@ function Signup() {
       // The profile row stores shared user information and the app role.
       const { error: profileError } = await supabase.from("profiles").insert({
         id: user.id,
-        role: "student",
+        role: ROLES.STUDENT,
         full_name: formData.fullName,
         email: formData.email,
       });
@@ -119,7 +121,7 @@ function Signup() {
       setFormData(initialForm);
 
       setTimeout(() => {
-        navigate("/login");
+        navigate(ROUTES.LOGIN);
       }, 1200);
     } catch (requestError) {
       setError(requestError.message || "Unable to create your account.");
@@ -233,7 +235,7 @@ function Signup() {
         </form>
 
         <p style={styles.footerText}>
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account? <Link to={ROUTES.LOGIN}>Login</Link>
         </p>
       </section>
     </main>

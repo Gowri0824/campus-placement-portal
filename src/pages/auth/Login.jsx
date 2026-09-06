@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../../services/supabaseClient";
+import { ROUTES, getRoleHomePath } from "../../constants/routes";
+import { useAuth } from "../../hooks/useAuth";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -8,9 +9,12 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (event) => {
+
     event.preventDefault();
+
     setError("");
 
     if (!email || !password) {
@@ -20,23 +24,32 @@ function Login() {
 
     setIsSubmitting(true);
 
-    try {
-      // signInWithPassword validates credentials against Supabase Auth.
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
 
-      if (loginError) {
-        throw loginError;
+    try {
+
+      const { profile } = await signIn({ email, password });
+      const homePath = getRoleHomePath(profile?.role);
+
+      if (!homePath) {
+        throw new Error("Your account does not have a supported portal role.");
       }
 
-      navigate("/student/dashboard", { replace: true });
-    } catch (requestError) {
-      setError(requestError.message || "Unable to login. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      navigate(homePath);
+
+
+
     }
+    catch (error) {
+
+      setError(error.message);
+
+    }
+    finally {
+
+      setIsSubmitting(false);
+
+    }
+
   };
 
   return (
@@ -76,7 +89,7 @@ function Login() {
         </form>
 
         <p style={styles.footerText}>
-          New student? <Link to="/signup">Create an account</Link>
+          New student? <Link to={ROUTES.SIGNUP}>Create an account</Link>
         </p>
       </section>
     </main>

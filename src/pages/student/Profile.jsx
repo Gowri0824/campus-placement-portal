@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { ROUTES } from "../../constants/routes";
+import { MAX_RESUME_SIZE_IN_MB } from "../../constants/storage";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  createResumeAccessUrl,
+  RESUME_BUCKET,
+} from "../../services/resumeStorage";
 import { supabase } from "../../services/supabaseClient";
-
-const RESUME_BUCKET = "resumes";
-const MAX_RESUME_SIZE_IN_MB = 10;
 
 const initialProfile = {
   fullName: "",
@@ -14,6 +18,7 @@ const initialProfile = {
   graduationYear: "",
   skills: "",
   resumeUrl: "",
+  resumePath: "",
 };
 
 function Profile() {
@@ -31,25 +36,19 @@ function Profile() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const { session, user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
     const loadProfile = async () => {
+      if (!userId) {
+        return;
+      }
+
       setIsLoading(true);
       setError("");
 
       try {
-        // Get the logged-in Supabase Auth user before reading private data.
-        const { data: userData, error: userError } =
-          await supabase.auth.getUser();
-
-        if (userError || !userData.user) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const userId = userData.user.id;
-
         // profiles contains common user details such as name and email.
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
@@ -74,15 +73,18 @@ function Profile() {
           throw studentError;
         }
 
+        const resumeAccess = await createResumeAccessUrl(studentData.resume_url);
+
         const loadedProfile = {
           fullName: profileData.full_name || "",
-          email: profileData.email || userData.user.email || "",
+          email: profileData.email || user?.email || "",
           rollNumber: studentData.roll_number || "",
           branch: studentData.branch || "",
           cgpa: studentData.cgpa ?? "",
           graduationYear: studentData.graduation_year ?? "",
           skills: studentData.skills || "",
-          resumeUrl: studentData.resume_url || "",
+          resumeUrl: resumeAccess.url,
+          resumePath: resumeAccess.path,
         };
 
         setProfile(loadedProfile);
@@ -92,6 +94,10 @@ function Profile() {
           graduationYear: String(loadedProfile.graduationYear),
           skills: loadedProfile.skills,
         });
+
+        if (resumeAccess.error) {
+          setError("Profile loaded, but the secure resume link is unavailable.");
+        }
       } catch (requestError) {
         setError(requestError.message || "Unable to load your profile.");
       } finally {
@@ -100,7 +106,7 @@ function Profile() {
     };
 
     loadProfile();
-  }, [navigate]);
+  }, [user?.email, userId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -154,55 +160,47 @@ function Profile() {
     setUploadProgress(5);
 
     try {
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-
-      if (userError || !userData.user) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
-
-      if (sessionError || !sessionData.session) {
-        navigate("/login", { replace: true });
-        return;
+      if (!userId || !session) {
+        throw new Error("Your session has expired. Please log in again.");
       }
 
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
-      const filePath = `${userData.user.id}/${Date.now()}-${cleanFileName}`;
+      const filePath = `${userId}/${Date.now()}-${cleanFileName}`;
 
       // XMLHttpRequest is used here because Supabase Storage's browser helper
       // does not currently expose upload progress events.
       await uploadResumeWithProgress({
         file,
         filePath,
-        accessToken: sessionData.session.access_token,
+        accessToken: session.access_token,
         onProgress: setUploadProgress,
       });
 
       setUploadProgress(90);
 
-      const { data: publicUrlData } = supabase.storage
-        .from(RESUME_BUCKET)
-        .getPublicUrl(filePath);
-
       const { error: updateError } = await supabase
         .from("students")
-        .update({ resume_url: publicUrlData.publicUrl })
-        .eq("profile_id", userData.user.id);
+        .update({ resume_url: filePath })
+        .eq("profile_id", userId);
 
       if (updateError) {
         throw updateError;
       }
 
+      const resumeAccess = await createResumeAccessUrl(filePath);
+
       setProfile((currentProfile) => ({
         ...currentProfile,
-        resumeUrl: publicUrlData.publicUrl,
+        resumeUrl: resumeAccess.url,
+        resumePath: filePath,
       }));
       setUploadProgress(100);
-      setSuccessMessage("Resume uploaded successfully.");
+
+      if (resumeAccess.error) {
+        setError("Resume uploaded, but the secure preview link is unavailable.");
+      } else {
+        setSuccessMessage("Resume uploaded successfully.");
+      }
     } catch (requestError) {
       setError(requestError.message || "Unable to upload your resume.");
       setUploadProgress(0);
@@ -245,17 +243,14 @@ function Profile() {
       return;
     }
 
+    if (!userId) {
+      setError("Your session has expired. Please log in again.");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-
-      if (userError || !userData.user) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
       const updatedStudentDetails = {
         branch: formData.branch.trim(),
         cgpa: Number(formData.cgpa),
@@ -267,7 +262,7 @@ function Profile() {
       const { error: updateError } = await supabase
         .from("students")
         .update(updatedStudentDetails)
-        .eq("profile_id", userData.user.id);
+        .eq("profile_id", userId);
 
       if (updateError) {
         throw updateError;
@@ -308,7 +303,7 @@ function Profile() {
             </p>
           </div>
 
-          <Link to="/student/dashboard" style={styles.secondaryButton}>
+          <Link to={ROUTES.STUDENT_DASHBOARD} style={styles.secondaryButton}>
             Back to Dashboard
           </Link>
         </div>
@@ -326,7 +321,10 @@ function Profile() {
               <ProfileItem label="Roll Number" value={profile.rollNumber} />
               <ProfileItem
                 label="Uploaded Resume"
-                value={getResumeName(profile.resumeUrl) || "Not uploaded"}
+                value={
+                  getResumeName(profile.resumePath || profile.resumeUrl) ||
+                  "Not uploaded"
+                }
               />
             </div>
 
@@ -347,7 +345,7 @@ function Profile() {
               >
                 {isUploadingResume
                   ? "Uploading..."
-                  : profile.resumeUrl
+                  : profile.resumePath
                     ? "Replace Resume"
                     : "Upload Resume"}
               </button>

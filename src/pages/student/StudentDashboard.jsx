@@ -1,50 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../../services/supabaseClient";
+import { ROUTES } from "../../constants/routes";
+import { useAuth } from "../../hooks/useAuth";
 
 function StudentDashboard() {
-  const [userEmail, setUserEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !data.user) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      setUserEmail(data.user.email || "");
-      setIsLoading(false);
-    };
-
-    loadUser();
-  }, [navigate]);
+  const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
     setError("");
 
     // Signing out clears the Supabase session stored in the browser.
-    const { error: logoutError } = await supabase.auth.signOut();
-
-    if (logoutError) {
-      setError(logoutError.message);
-      return;
+    try {
+      await signOut();
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch (logoutError) {
+      setError(logoutError.message || "Unable to log out.");
     }
-
-    navigate("/login", { replace: true });
   };
-
-  if (isLoading) {
-    return (
-      <main style={styles.page}>
-        <section style={styles.panel}>Loading dashboard...</section>
-      </main>
-    );
-  }
 
   return (
     <main style={styles.page}>
@@ -53,18 +27,33 @@ function StudentDashboard() {
           <p style={styles.eyebrow}>Student Dashboard</p>
           <h1 style={styles.title}>Welcome to your placement portal</h1>
           <p style={styles.description}>
-            You are logged in as <strong>{userEmail}</strong>.
+            You are logged in as <strong>{user?.email || ""}</strong>.
           </p>
         </div>
 
         {error && <div style={styles.error}>{error}</div>}
 
         <div style={styles.actions}>
-          <Link to="/student/profile" style={styles.profileCard}>
+          <Link to={ROUTES.STUDENT_PROFILE} style={styles.profileCard}>
             <span style={styles.cardTitle}>Profile</span>
             <span style={styles.cardText}>
               View and update your academic details, skills, and resume
               information.
+            </span>
+          </Link>
+
+          <Link to={ROUTES.STUDENT_DRIVES} style={styles.driveCard}>
+            <span style={styles.cardTitle}>View Placement Drives</span>
+            <span style={styles.cardText}>
+              Explore available company drives and apply when you are eligible.
+            </span>
+          </Link>
+
+          <Link to={ROUTES.STUDENT_APPLICATIONS} style={styles.applicationCard}>
+            <span style={styles.cardTitle}>My Applications</span>
+            <span style={styles.cardText}>
+              Track the placement drives you have applied for and check status
+              updates.
             </span>
           </Link>
 
@@ -111,17 +100,37 @@ const styles = {
   },
   actions: {
     display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gap: "16px",
   },
   profileCard: {
     display: "grid",
     gap: "8px",
-    maxWidth: "420px",
     border: "1px solid #bfdbfe",
     borderRadius: "8px",
     padding: "18px",
     background: "#eff6ff",
     color: "#1e3a8a",
+    textDecoration: "none",
+  },
+  driveCard: {
+    display: "grid",
+    gap: "8px",
+    border: "1px solid #bbf7d0",
+    borderRadius: "8px",
+    padding: "18px",
+    background: "#f0fdf4",
+    color: "#14532d",
+    textDecoration: "none",
+  },
+  applicationCard: {
+    display: "grid",
+    gap: "8px",
+    border: "1px solid #fde68a",
+    borderRadius: "8px",
+    padding: "18px",
+    background: "#fffbeb",
+    color: "#78350f",
     textDecoration: "none",
   },
   cardTitle: {
@@ -142,6 +151,7 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     justifySelf: "start",
+    gridColumn: "1 / -1",
   },
   error: {
     marginBottom: "16px",
