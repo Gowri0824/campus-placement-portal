@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "node --experimental-vm-modules --test tests/*.test.mjs",
+    "scan:repository": "node scripts/check-repository-secrets.mjs",
+    "scan:frontend": "node scripts/check-frontend-secrets.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
