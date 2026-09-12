@@ -4,7 +4,7 @@ import { fetchCompanyNamesByIds } from "./companiesService";
 import { mapDrivesWithCompanies } from "../utils/studentApplications";
 
 export async function fetchStudentDrives(driveIds) {
-  let drives = [];
+  let drives;
   if (driveIds) {
     const { data, error } = await fetchRowsByIds(
       "placement_drives", DRIVE_COLUMNS, [...new Set(driveIds.filter(Boolean))]
@@ -12,18 +12,7 @@ export async function fetchStudentDrives(driveIds) {
     if (error) throw error;
     drives = data;
   } else {
-    const pageSize = 1000;
-    for (let start = 0; ; start += pageSize) {
-      const { data, error } = await supabase
-        .from("placement_drives")
-        .select(DRIVE_COLUMNS)
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: true })
-        .range(start, start + pageSize - 1);
-      if (error) throw error;
-      drives.push(...(data || []));
-      if (!data || data.length < pageSize) break;
-    }
+    drives = await fetchDriveRows();
   }
   const companies = await fetchCompanyNamesByIds(drives.map((drive) => drive.company_id));
   return mapDrivesWithCompanies(drives, companies);
@@ -31,6 +20,29 @@ export async function fetchStudentDrives(driveIds) {
 
 const DRIVE_COLUMNS =
   "id, company_id, role, min_cgpa, allowed_branches, package, deadline, created_at";
+
+async function fetchDriveRows(companyId) {
+  const drives = [];
+  const pageSize = 1000;
+  for (let start = 0; ; start += pageSize) {
+    let query = supabase.from("placement_drives").select(DRIVE_COLUMNS);
+    if (companyId) query = query.eq("company_id", companyId);
+    const { data, error } = await query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .range(start, start + pageSize - 1);
+    if (error) throw error;
+    drives.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+  return drives;
+}
+
+export async function fetchCompanyDrives(companyId) {
+  // A missing assignment must never fall back to the unscoped Student reader.
+  if (!companyId) return [];
+  return fetchDriveRows(companyId);
+}
 
 function createNoResultError(resultAction, policyAction) {
   const error = new Error(

@@ -3,6 +3,7 @@ import { ROLES } from "../constants/roles";
 import { ROUTES } from "../constants/routes";
 import AdminLayout from "../layouts/AdminLayout";
 import StudentLayout from "../layouts/StudentLayout";
+import RecruiterLayout from "../layouts/RecruiterLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ApplicationsManagement from "../pages/admin/ApplicationsManagement";
 import CompaniesManagement from "../pages/admin/CompaniesManagement";
@@ -12,11 +13,16 @@ import StudentsManagement from "../pages/admin/StudentsManagement";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
 import RecruiterDashboard from "../pages/recruiter/RecruiterDashboard";
+import MyCompany from "../pages/recruiter/MyCompany";
+import CompanyDrives from "../pages/recruiter/CompanyDrives";
+import RecruiterApplicants from "../pages/recruiter/RecruiterApplicants";
 import MyApplications from "../pages/student/MyApplications";
 import PlacementDrives from "../pages/student/PlacementDrives";
 import Profile from "../pages/student/Profile";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import RecruiterManagement from "../pages/admin/RecruiterManagement";
+import PasswordSetup from "../pages/auth/PasswordSetup";
 
 function AppRoutes() {
   return (
@@ -26,6 +32,7 @@ function AppRoutes() {
 
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.SIGNUP} element={<Signup />} />
+        <Route path={ROUTES.PASSWORD_SETUP} element={<PasswordSetup />} />
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.STUDENT]} />}>
           <Route path={ROUTES.STUDENT_ROOT} element={<StudentLayout />}>
@@ -41,10 +48,13 @@ function AppRoutes() {
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.RECRUITER]} />}>
-          <Route
-            path={ROUTES.RECRUITER_DASHBOARD}
-            element={<RecruiterDashboard />}
-          />
+          <Route path={ROUTES.RECRUITER_ROOT} element={<RecruiterLayout />}>
+            <Route index element={<Navigate to={ROUTES.RECRUITER_DASHBOARD} replace />} />
+            <Route path="dashboard" element={<RecruiterDashboard />} />
+            <Route path="company" element={<MyCompany />} />
+            <Route path="drives" element={<CompanyDrives />} />
+            <Route path="applicants" element={<RecruiterApplicants />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
@@ -59,6 +69,7 @@ function AppRoutes() {
             <Route path="drives" element={<PlacementDrivesManagement />} />
             <Route path="eligible-students" element={<EligibleStudents />} />
             <Route path="applications" element={<ApplicationsManagement />} />
+            <Route path="recruiters" element={<RecruiterManagement />} />
           </Route>
         </Route>
 

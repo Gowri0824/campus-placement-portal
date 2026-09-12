@@ -1,5 +1,15 @@
 import { supabase } from "./supabaseClient";
 
+export async function fetchPaginatedRows(createQuery, pageSize = 1000) {
+  const rows = [];
+  for (let start = 0; ; start += pageSize) {
+    const { data, error } = await createQuery().range(start, start + pageSize - 1);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) return rows;
+  }
+}
+
 export async function fetchRowsByIds(table, columns, ids) {
   if (ids.length === 0) {
     return { data: [], error: null };

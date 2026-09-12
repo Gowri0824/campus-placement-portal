@@ -15,3 +15,7 @@ export const APPLICATION_STATUS_OPTIONS = Object.freeze([
 export const APPLICATION_STATUS_VALUES = Object.freeze(
   APPLICATION_STATUS_OPTIONS.map((option) => option.value)
 );
+
+export const RECRUITER_DECISION_STATUSES = Object.freeze([
+  APPLICATION_STATUS.SELECTED, APPLICATION_STATUS.REJECTED,
+]);

@@ -7,6 +7,7 @@ const menuItems = [
     { label: "Dashboard", path: ROUTES.ADMIN_DASHBOARD },
     { label: "Students", path: ROUTES.ADMIN_STUDENTS },
     { label: "Companies", path: ROUTES.ADMIN_COMPANIES },
+    { label: "Recruiters", path: ROUTES.ADMIN_RECRUITERS },
     { label: "Placement Drives", path: ROUTES.ADMIN_DRIVES },
     { label: "Eligible Students", path: ROUTES.ADMIN_ELIGIBLE_STUDENTS },
     { label: "Applications", path: ROUTES.ADMIN_APPLICATIONS },

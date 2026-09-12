@@ -1,0 +1,4 @@
+[functions.invite-recruiter]
+# The handler always validates the user's JWT via Auth getUser, including modern
+# asymmetric tokens. No authorization decision is made from decoded claims alone.
+verify_jwt = false

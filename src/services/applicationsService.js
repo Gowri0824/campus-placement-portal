@@ -1,7 +1,24 @@
-import { fetchRowsByIds } from "./supabaseReads";
+import { fetchPaginatedRows, fetchRowsByIds } from "./supabaseReads";
 import { supabase } from "./supabaseClient";
 import { mapApplications } from "../utils/adminApplications";
 import { APPLICATION_STATUS } from "../constants/applicationStatuses";
+
+export async function fetchApplicationsForDrives(driveIds) {
+  const ids = uniqueIds(driveIds);
+  const applications = [];
+  // Each drive can have many applicants, so ID chunks still need row pagination.
+  for (let index = 0; index < ids.length; index += 100) {
+    const chunk = ids.slice(index, index + 100);
+    const rows = await fetchPaginatedRows(() => supabase
+      .from("applications")
+      .select("id, student_id, drive_id, status, applied_at")
+      .in("drive_id", chunk)
+      .order("applied_at", { ascending: false })
+      .order("id", { ascending: true }));
+    for (const row of rows) applications.push(row);
+  }
+  return applications;
+}
 
 export async function fetchStudentApplications(studentId) {
   const applications = [];

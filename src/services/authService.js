@@ -47,3 +47,13 @@ export function subscribeToAuthChanges(listener) {
 
   return () => data.subscription.unsubscribe();
 }
+
+export async function setCurrentUserPassword(password, expectedUserId) {
+  const session = await getCurrentSession();
+  if (!expectedUserId || session?.user?.id !== expectedUserId) {
+    throw new Error("Your session changed. Reopen the invitation link before setting a password.");
+  }
+  const { data, error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+  if (data.user?.id !== expectedUserId) throw new Error("The password update could not be verified. Please sign in again.");
+}

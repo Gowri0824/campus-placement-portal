@@ -1,6 +1,7 @@
 import { getResumeObjectPath, createResumeAccessUrl } from "./resumeStorage";
 import { supabase } from "./supabaseClient";
 import { mapStudentsWithProfiles } from "../utils/studentDirectory";
+import { fetchRowsByIds } from "./supabaseReads";
 
 const STUDENT_PAGE_SIZE = 1000;
 const PROFILE_ID_CHUNK_SIZE = 100;
@@ -75,8 +76,7 @@ async function fetchProfilesByIds(profileIds) {
   return results.flatMap((result) => result.data || []);
 }
 
-export async function fetchStudentDirectory() {
-  const students = await fetchAllStudents();
+async function attachStudentProfiles(students) {
   const profileIds = [
     ...new Set(students.map((student) => student.profile_id).filter(Boolean)),
   ];
@@ -86,6 +86,17 @@ export async function fetchStudentDirectory() {
     ...student,
     resume_path: getResumeObjectPath(student.resume_url),
   }));
+}
+
+export async function fetchStudentDirectory() {
+  return attachStudentProfiles(await fetchAllStudents());
+}
+
+export async function fetchStudentsByIds(studentIds) {
+  const ids = [...new Set(studentIds.filter(Boolean))];
+  const { data, error } = await fetchRowsByIds("students", STUDENT_COLUMNS, ids);
+  if (error) throw error;
+  return attachStudentProfiles(data);
 }
 
 export async function createStudentResumeAccessUrl(resumePath) {

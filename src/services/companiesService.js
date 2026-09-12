@@ -1,5 +1,10 @@
 import { supabase } from "./supabaseClient";
-import { fetchRowsByIds } from "./supabaseReads";
+import { fetchPaginatedRows, fetchRowsByIds } from "./supabaseReads";
+
+export function fetchCompanyOptions() {
+  return fetchPaginatedRows(() => supabase.from("companies")
+    .select("id, company_name").order("company_name").order("id"));
+}
 
 export async function fetchCompanyNamesByIds(ids) {
   const { data, error } = await fetchRowsByIds(
@@ -11,6 +16,17 @@ export async function fetchCompanyNamesByIds(ids) {
 
 const COMPANY_COLUMNS =
   "id, company_name, website, description, location, created_at";
+
+export async function fetchCompanyById(companyId) {
+  if (!companyId) return null;
+  const { data, error } = await supabase
+    .from("companies")
+    .select(COMPANY_COLUMNS)
+    .eq("id", companyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
 
 function toCompanyPayload(company) {
   return {
