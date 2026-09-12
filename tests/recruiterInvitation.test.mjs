@@ -60,6 +60,14 @@ function fixture(options = {}) {
         if (options.conflict) return { error: { code: "23505", message: "Existing account" } };
         return { data: options.target ? { user_id: "existing", request_id: "old-request" } : { user_id: null } };
       }
+      if (name === "portal_audit_recruiter_invitation") {
+        assert.ok(stored);
+        assert.equal(args.p_user_id, user.id);
+        assert.equal(args.p_company_id, COMPANY);
+        if (options.auditFails) return { error: { code: "42501" } };
+        return { data: options.auditMismatch ? null : args.p_attempt_id };
+      }
+      assert.equal(name, "portal_provision_recruiter");
       provisionAttempts++;
       if (options.transportFails) throw new Error("Network timeout");
       if (options.provisionFails) return { error: { code: "23503", message: "Company deleted" } };
@@ -111,8 +119,17 @@ test("Admin provisions database before sending invite", async () => {
   const result = await f.invoke();
   assert.equal(result.status, 200);
   assert.equal(result.body.invited, true);
-  assert.deepEqual(f.calls, ["verify-token", "portal_recruiter_invite_target", "create-auth", "portal_provision_recruiter", "send-invite"]);
+  assert.deepEqual(f.calls, ["verify-token", "portal_recruiter_invite_target", "create-auth", "portal_provision_recruiter", "portal_audit_recruiter_invitation", "send-invite"]);
   assert.ok(!JSON.stringify(result.body).includes("token"));
+});
+
+for (const option of ["auditFails", "auditMismatch"]) test(`unconfirmed invitation audit prevents email: ${option}`, async () => {
+  const f = fixture({ [option]: true });
+  const result = await f.invoke();
+  assert.equal(result.status, 503);
+  assert.equal(result.body.code, "INVITATION_AUDIT_FAILED");
+  assert.ok(!f.calls.includes("send-invite"));
+  assert.ok(!f.calls.includes("delete-auth"), "A consistent provisioned account must remain intact");
 });
 test("incompatible email and create race cannot convert/delete existing accounts", async () => {
   const conflict = fixture({ conflict: true });
@@ -254,6 +271,7 @@ test("admin route guard denies student/recruiter/anonymous and invitation callba
   const branches = Routes().props.children.props.children;
   const admin = branches.find((route) => route.props.element?.props.allowedRoles?.includes("admin"));
   assert.ok(admin.props.children.props.children.some((route) => route.props.path === "recruiters"));
+  assert.ok(admin.props.children.props.children.some((route) => route.props.path === "audit-logs"));
   assert.ok(branches.some((route) => route.props.path === "/auth/setup-password"));
 });
 

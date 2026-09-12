@@ -92,6 +92,16 @@ export async function provisionRecruiter(client, adminId, input, redirectTo, req
       : `Provisioning could not be verified. No invitation was sent and no existing records were deleted. Retry the same email/company; if it persists, ask the project owner to reconcile account ${userId}.`,
     503, cleaned ? "PROVISIONING_ROLLED_BACK" : "PROVISIONING_REQUIRES_REVIEW");
   }
+  // Record an authorized attempt before the external side effect. This is not a delivery receipt.
+  try {
+    const auditId = await rpc(client, "portal_audit_recruiter_invitation", {
+      p_admin_id: adminId, p_user_id: userId, p_company_id: companyId, p_attempt_id: requestId,
+    });
+    if (auditId !== requestId) throw new Error("Invitation audit result mismatch.");
+  } catch {
+    throw new InviteError("Recruiter provisioned, but the invitation audit could not be confirmed. No email was sent. Retry the same email and company; no account was deleted.",
+      503, "INVITATION_AUDIT_FAILED");
+  }
   // Preserve a consistent pending recruiter if delivery fails or its result is unknown.
   try {
     const { data, error } = await client.auth.admin.inviteUserByEmail(email, { redirectTo });

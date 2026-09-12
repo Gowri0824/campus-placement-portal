@@ -17,6 +17,7 @@ export const ROUTES = Object.freeze({
   ADMIN_ELIGIBLE_STUDENTS: "/admin/eligible-students",
   ADMIN_APPLICATIONS: "/admin/applications",
   ADMIN_RECRUITERS: "/admin/recruiters",
+  ADMIN_AUDIT_LOGS: "/admin/audit-logs",
   RECRUITER_ROOT: "/recruiter",
   RECRUITER_DASHBOARD: "/recruiter/dashboard",
   RECRUITER_COMPANY: "/recruiter/company",
@@ -38,6 +39,7 @@ export const ADMIN_ROUTE_TITLES = Object.freeze({
   [ROUTES.ADMIN_ELIGIBLE_STUDENTS]: "Eligible Students",
   [ROUTES.ADMIN_APPLICATIONS]: "Applications Management",
   [ROUTES.ADMIN_RECRUITERS]: "Recruiter Management",
+  [ROUTES.ADMIN_AUDIT_LOGS]: "Audit Logs",
 });
 
 export function getRoleHomePath(role) {

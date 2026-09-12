@@ -5,6 +5,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import StudentLayout from "../layouts/StudentLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AuditLogs from "../pages/admin/AuditLogs";
 import ApplicationsManagement from "../pages/admin/ApplicationsManagement";
 import CompaniesManagement from "../pages/admin/CompaniesManagement";
 import EligibleStudents from "../pages/admin/EligibleStudents";
@@ -70,6 +71,7 @@ function AppRoutes() {
             <Route path="eligible-students" element={<EligibleStudents />} />
             <Route path="applications" element={<ApplicationsManagement />} />
             <Route path="recruiters" element={<RecruiterManagement />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
           </Route>
         </Route>
 

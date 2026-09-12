@@ -1,0 +1,14 @@
+.audit-logs { max-width: 1200px; margin: 0 auto; min-width: 0; }
+.audit-logs header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.audit-logs h1 { font-size: 28px; margin: 0; }
+.audit-logs button { padding: 10px 16px; background: #2563eb; color: #fff; border: 0; border-radius: 6px; font: inherit; cursor: pointer; }
+.audit-logs button:disabled { opacity: .5; cursor: not-allowed; }
+.audit-filters { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.audit-filters label { display: grid; gap: 6px; font-weight: 600; min-width: 0; max-width: 100%; }
+.audit-filters select { font: inherit; font-weight: 400; background: #fff; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; max-width: 100%; }
+.audit-table-wrap { overflow-x: auto; border: 1px solid #e5e7eb; }
+.audit-table { width: 100%; min-width: 900px; table-layout: fixed; border-collapse: collapse; background: #fff; }
+.audit-table th, .audit-table td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; overflow-wrap: anywhere; vertical-align: top; }
+.audit-table th { background: #f3f4f6; font-size: 14px; }
+.audit-table small, .audit-table code { display: block; color: #4b5563; margin-top: 6px; font-size: 12px; }
+.audit-pagination { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 16px; }

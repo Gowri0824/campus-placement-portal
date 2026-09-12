@@ -1,4 +1,13 @@
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const timestampFormatter = new Intl.DateTimeFormat("en-IN", {
+  dateStyle: "medium", timeStyle: "medium", timeZone: "UTC",
+});
+
+export function formatDateTime(value, fallback = "Not available") {
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? timestampFormatter.format(parsed) : fallback;
+}
+
 const displayDateFormatter = new Intl.DateTimeFormat("en-IN", {
   day: "2-digit",
   month: "short",

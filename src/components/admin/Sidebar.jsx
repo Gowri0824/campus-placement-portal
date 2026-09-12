@@ -11,6 +11,7 @@ const menuItems = [
     { label: "Placement Drives", path: ROUTES.ADMIN_DRIVES },
     { label: "Eligible Students", path: ROUTES.ADMIN_ELIGIBLE_STUDENTS },
     { label: "Applications", path: ROUTES.ADMIN_APPLICATIONS },
+    { label: "Audit Logs", path: ROUTES.ADMIN_AUDIT_LOGS },
 ];
 
 function Sidebar() {
