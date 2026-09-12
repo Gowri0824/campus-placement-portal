@@ -129,5 +129,9 @@ These need separate dependency review. No versions or lockfile were changed.
 Dependency-audit findings are not a gating step in this workflow; the requested
 lint/test/build/secret-scan checks are. No live Supabase tests were executed.
 
+The original advisories are reviewed and addressed separately in the
+[dependency audit](dependency-audit-2026-09-12.md); the paragraph above records
+the findings at initial CI setup, not the current dependency state.
+
 References: [GitHub's Node.js workflow guide](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs)
 and [setup-node caching](https://github.com/actions/setup-node#caching-global-packages-data).
