@@ -10,7 +10,19 @@ export async function getCurrentSession() {
   return data.session;
 }
 
-export async function getAuthProfile(userId) {
+const pendingProfiles = new Map();
+
+// Session initialization and auth events can overlap. Share only pending reads;
+// never retain resolved roles or errors, so later refreshes still query RLS.
+export function getAuthProfile(userId) {
+  if (!pendingProfiles.has(userId)) {
+    const request = readAuthProfile(userId).finally(() => pendingProfiles.delete(userId));
+    pendingProfiles.set(userId, request);
+  }
+  return pendingProfiles.get(userId);
+}
+
+async function readAuthProfile(userId) {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, email, role")

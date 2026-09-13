@@ -45,17 +45,12 @@ function createNoResultError(resultAction, policyAction) {
   return error;
 }
 
-export async function fetchCompanies() {
-  const { data, error } = await supabase
+export function fetchCompanies() {
+  return fetchPaginatedRows(() => supabase
     .from("companies")
     .select(COMPANY_COLUMNS)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data || [];
+    .order("created_at", { ascending: false })
+    .order("id"));
 }
 
 export async function createCompany(company) {

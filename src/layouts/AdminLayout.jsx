@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navigation from "../components/admin/Navigation";
 import Sidebar from "../components/admin/Sidebar";
 import { ADMIN_ROUTE_TITLES } from "../constants/routes";
+import RouteContent from "../routes/RouteContent";
 
 function AdminLayout() {
   const location = useLocation();
@@ -12,7 +13,7 @@ function AdminLayout() {
       <Sidebar />
       <main className="admin-content" style={styles.content}>
         <Navigation title={title} />
-        <Outlet />
+        <RouteContent><Outlet /></RouteContent>
       </main>
     </div>
   );

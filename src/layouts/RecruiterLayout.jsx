@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import StatusMessage from "../components/common/StatusMessage";
 import { ROUTES } from "../constants/routes";
 import { useRecruiterWorkspace } from "../hooks/useRecruiterWorkspace";
+import RouteContent from "../routes/RouteContent";
 import "../styles/recruiter.css";
 
 export default function RecruiterLayout() {
@@ -21,7 +22,7 @@ export default function RecruiterLayout() {
         </button>
         <StatusMessage type="error">{workspace.error}</StatusMessage>
       </aside>
-      <main className="recruiter-content"><Outlet context={workspace} /></main>
+      <main className="recruiter-content"><RouteContent><Outlet context={workspace} /></RouteContent></main>
     </div>
   );
 }

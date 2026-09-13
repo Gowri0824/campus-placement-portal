@@ -1,6 +1,6 @@
 import { supabase } from "./supabaseClient";
 import { fetchRowsByIds } from "./supabaseReads";
-import { fetchCompanyNamesByIds } from "./companiesService";
+import { fetchCompanyNamesByIds, fetchCompanyOptions } from "./companiesService";
 import { mapDrivesWithCompanies } from "../utils/studentApplications";
 
 export async function fetchStudentDrives(driveIds) {
@@ -52,35 +52,9 @@ function createNoResultError(resultAction, policyAction) {
   return error;
 }
 
-async function fetchPlacementDrives() {
-  const { data, error } = await supabase
-    .from("placement_drives")
-    .select(DRIVE_COLUMNS)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data || [];
-}
-
-async function fetchCompanyOptions() {
-  const { data, error } = await supabase
-    .from("companies")
-    .select("id, company_name")
-    .order("company_name", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  return data || [];
-}
-
 export async function fetchDriveManagementData() {
   const [driveRows, companies] = await Promise.all([
-    fetchPlacementDrives(),
+    fetchDriveRows(),
     fetchCompanyOptions(),
   ]);
   const companyNameById = new Map(

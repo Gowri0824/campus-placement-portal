@@ -1,29 +1,33 @@
+import { lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ROLES } from "../constants/roles";
 import { ROUTES } from "../constants/routes";
 import AdminLayout from "../layouts/AdminLayout";
 import StudentLayout from "../layouts/StudentLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
-import AdminDashboard from "../pages/admin/AdminDashboard";
-import AuditLogs from "../pages/admin/AuditLogs";
-import ApplicationsManagement from "../pages/admin/ApplicationsManagement";
-import CompaniesManagement from "../pages/admin/CompaniesManagement";
-import EligibleStudents from "../pages/admin/EligibleStudents";
-import PlacementDrivesManagement from "../pages/admin/PlacementDrivesManagement";
-import StudentsManagement from "../pages/admin/StudentsManagement";
 import Login from "../pages/auth/Login";
-import Signup from "../pages/auth/Signup";
-import RecruiterDashboard from "../pages/recruiter/RecruiterDashboard";
-import MyCompany from "../pages/recruiter/MyCompany";
-import CompanyDrives from "../pages/recruiter/CompanyDrives";
-import RecruiterApplicants from "../pages/recruiter/RecruiterApplicants";
-import MyApplications from "../pages/student/MyApplications";
-import PlacementDrives from "../pages/student/PlacementDrives";
-import Profile from "../pages/student/Profile";
-import StudentDashboard from "../pages/student/StudentDashboard";
 import ProtectedRoute from "./ProtectedRoute";
-import RecruiterManagement from "../pages/admin/RecruiterManagement";
-import PasswordSetup from "../pages/auth/PasswordSetup";
+import RouteContent from "./RouteContent";
+
+// Login stays eager; feature code loads only after its route passes the role guard.
+const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard"));
+const AuditLogs = lazy(() => import("../pages/admin/AuditLogs"));
+const ApplicationsManagement = lazy(() => import("../pages/admin/ApplicationsManagement"));
+const CompaniesManagement = lazy(() => import("../pages/admin/CompaniesManagement"));
+const EligibleStudents = lazy(() => import("../pages/admin/EligibleStudents"));
+const PlacementDrivesManagement = lazy(() => import("../pages/admin/PlacementDrivesManagement"));
+const StudentsManagement = lazy(() => import("../pages/admin/StudentsManagement"));
+const RecruiterManagement = lazy(() => import("../pages/admin/RecruiterManagement"));
+const Signup = lazy(() => import("../pages/auth/Signup"));
+const PasswordSetup = lazy(() => import("../pages/auth/PasswordSetup"));
+const RecruiterDashboard = lazy(() => import("../pages/recruiter/RecruiterDashboard"));
+const MyCompany = lazy(() => import("../pages/recruiter/MyCompany"));
+const CompanyDrives = lazy(() => import("../pages/recruiter/CompanyDrives"));
+const RecruiterApplicants = lazy(() => import("../pages/recruiter/RecruiterApplicants"));
+const MyApplications = lazy(() => import("../pages/student/MyApplications"));
+const PlacementDrives = lazy(() => import("../pages/student/PlacementDrives"));
+const Profile = lazy(() => import("../pages/student/Profile"));
+const StudentDashboard = lazy(() => import("../pages/student/StudentDashboard"));
 
 function AppRoutes() {
   return (
@@ -32,8 +36,8 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
 
         <Route path={ROUTES.LOGIN} element={<Login />} />
-        <Route path={ROUTES.SIGNUP} element={<Signup />} />
-        <Route path={ROUTES.PASSWORD_SETUP} element={<PasswordSetup />} />
+        <Route path={ROUTES.SIGNUP} element={<RouteContent><Signup /></RouteContent>} />
+        <Route path={ROUTES.PASSWORD_SETUP} element={<RouteContent><PasswordSetup /></RouteContent>} />
 
         <Route element={<ProtectedRoute allowedRoles={[ROLES.STUDENT]} />}>
           <Route path={ROUTES.STUDENT_ROOT} element={<StudentLayout />}>
